@@ -193,3 +193,43 @@ curl -H "password: YOUR_PASSWORD" \
 curl -H "password: YOUR_PASSWORD" \
   "http://localhost:8000/e2c-multi?word=lash&word=proficient&word=self-aware"
 ```
+
+---
+
+## `GET /mnemonic`
+
+根据英文单词生成简短助记文本。成功时直接返回 DeepSeek 原始响应 JSON（不套 e2c 的 `{ data, raw }`）。
+
+### Query
+
+| 参数   | 类型   | 必填 | 说明 |
+| ------ | ------ | ---- | ---- |
+| `word` | string | 是   | 目标英文单词，须匹配 `/^[A-Za-z]+(-[A-Za-z]+)*$/` |
+
+### 成功响应
+
+- **状态码** `200`
+- **Content-Type** `application/json`
+
+助记正文在 `choices[0].message.content`（纯文本）。可能出现的哨兵值（与 `const.ts` 一致）：
+
+| 值 | 含义 |
+| --- | ---- |
+| `没有找到合适的助记内容` | 模型认为没有合适助记可给 |
+| `非英文单词` | 模型判定输入不是英文单词（服务端已做格式校验，少见） |
+
+### 错误响应
+
+| 状态码 | 条件 | 正文 |
+| ------ | ---- | ---- |
+| `400` | 缺少 `word` 或格式无效 | `请求异常: 无效的单词 ...`（纯文本） |
+| `401` | 密码错误 | `password incorrect` |
+| `404` | 非 `GET` | `noT founD` |
+| `500` | LLM 调用失败，或未知异常 | `unknowN erroR` |
+
+### 示例
+
+```bash
+curl -H "password: YOUR_PASSWORD" \
+  "http://localhost:8000/mnemonic?word=multiple"
+```

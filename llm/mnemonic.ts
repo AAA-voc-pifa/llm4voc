@@ -29,8 +29,41 @@ type MnemonicResult = [false, string] | [true, DeepSeekResponseData]
 
 export
 async function mnemonic(word: string, ds_opts?: DeepSeekOpts): Promise<MnemonicResult> {
-	return await deepseek([
+	console.log('生成 mnemonic...', word)
+	const [ok, result] = await deepseek([
 		{ role: 'system', content: prompt.sys },
 		{ role: 'user', content: prompt.user(word) },
 	], ds_opts)
+	if (!ok) {
+		const msg = '生成 mnemonic - 调用失败: ' + result
+		console.error(msg)
+		return [false, msg]
+	}
+
+	const content = result.choices?.[0]?.message?.content
+	if (typeof content !== 'string') {
+		const msg = '生成 mnemonic - 响应缺少 content'
+		console.error(msg)
+		console.error(result)
+		return [false, msg]
+	}
+
+	const text = content.trim()
+	if (text === '') {
+		const msg = '生成 mnemonic - content 为空'
+		console.error(msg)
+		console.error(result)
+		return [false, msg]
+	}
+
+	result.choices[0].message.content = text
+
+	if (text === NOT_EN_WORD_ERROR_BY_LLM)
+		console.warn('生成 mnemonic - LLM 判定非英文单词:', word)
+	else if (text === NO_SUITABLE_MNEMONIC_CONTENT_ERROR)
+		console.warn('生成 mnemonic - 无合适助记内容:', word)
+	else
+		console.log('生成 mnemonic - 完成:', word)
+
+	return [true, result]
 }

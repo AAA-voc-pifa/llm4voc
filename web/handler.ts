@@ -1,5 +1,6 @@
 import { e2c } from '../llm/e2c/single.ts'
 import { e2c_multi } from '../llm/e2c/multi.ts'
+import { mnemonic } from '../llm/mnemonic.ts'
 import { http_password } from '../env.ts'
 import { validate_word } from '../util.ts'
 
@@ -25,6 +26,11 @@ async function http_handler(req: Request): Promise<Response> {
 			case '/e2c-multi':
 				if (req.method === 'GET')
 					return await handle_e2c_multi(url)
+				else
+					return not_found()
+			case '/mnemonic':
+				if (req.method === 'GET')
+					return await handle_mnemonic(url)
 				else
 					return not_found()
 			// 404
@@ -70,6 +76,24 @@ async function handle_e2c_multi(url: URL) {
 	if (ok)
 		return respond_json(result)
 
+	console.error(result)
+	return unknown_error()
+}
+
+async function handle_mnemonic(url: URL) {
+	const word = url.searchParams.get('word')
+	if (word === null || !validate_word(word)) {
+		console.warn('mnemonic 参数无效:', word)
+		return respond_400('无效的单词 ' + word)
+	}
+	const [ok, result] = await mnemonic(word, {
+		model: 'deepseek-flash',
+		thinking: 'high',
+	})
+	if (ok)
+		return respond_json(result)
+
+	console.error('mnemonic 失败:', word)
 	console.error(result)
 	return unknown_error()
 }
