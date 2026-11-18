@@ -88,23 +88,22 @@
 
 | 字段 | 类型 | 说明 |
 | ---- | ---- | ---- |
-| `data` | object \| string | 解析后的题目；若 LLM 判定非英文单词，则为哨兵 `"非英文单词"` |
-| `data.word` | string | 请求的单词（`data` 为 object 时） |
+| `data` | object | 解析后的题目 |
+| `data.word` | string | 请求的单词 |
 | `data.questions` | array | 题目列表（通常为 3 题） |
 | `data.questions[].en` | string | 包含目标单词的英文句子 |
 | `data.questions[].zh` | string | 对应中文翻译（可含意译） |
 | `raw` | object | DeepSeek 原始响应（字段可能多于下方列出的） |
 | `raw.id` | string | 请求 ID |
-| `raw.choices[].message.content` | string | 已清空为 `""`（题目或哨兵见 `data`） |
+| `raw.choices[].message.content` | string | 已清空为 `""`（题目见 `data`） |
 | `raw.choices[].message.reasoning_content` | string | 模型思考过程 |
-
-当 `data === "非英文单词"`（与 `const.ts` 中 `NOT_EN_WORD_ERROR_BY_LLM` 一致）时，表示模型判定输入不是英文单词。
 
 ### 错误响应
 
 | 状态码 | 条件 | 正文 |
 | ------ | ---- | ---- |
 | `400` | 缺少 `word` 或格式无效 | `请求异常: 无效的单词 ...`（纯文本） |
+| `400` | LLM 判定非英文单词 | `请求异常: 非英文单词`（纯文本） |
 | `401` | 密码错误 | `password incorrect` |
 | `404` | 非 `GET`（如 `POST /e2c`） | `noT founD` |
 | `500` | LLM 调用/解析失败，或未知异常 | `unknowN erroR` |
@@ -171,22 +170,21 @@ curl -H "password: YOUR_PASSWORD" \
 
 | 字段 | 类型 | 说明 |
 | ---- | ---- | ---- |
-| `data` | object \| string | 解析后的题目；若 LLM 判定含非英文单词，则为哨兵 `"非英文单词"` |
+| `data` | object | 解析后的题目 |
 | `data.questions` | array | 恰好 3 题，顺序与请求单词一致 |
 | `data.questions[].word` | string | 该题对应的单词 |
 | `data.questions[].en` | string | 包含目标单词的英文句子 |
 | `data.questions[].zh` | string | 对应中文翻译（可含意译） |
 | `raw` | object | DeepSeek 原始响应（字段可能多于下方列出的） |
-| `raw.choices[].message.content` | string | 已清空为 `""`（题目或哨兵见 `data`） |
+| `raw.choices[].message.content` | string | 已清空为 `""`（题目见 `data`） |
 | `raw.choices[].message.reasoning_content` | string | 模型思考过程 |
-
-当 `data === "非英文单词"` 时，表示模型判定输入中有不是英文单词的项。
 
 ### 错误响应
 
 | 状态码 | 条件 | 正文 |
 | ------ | ---- | ---- |
 | `400` | 不是恰好 3 个有效 `word` | `请求异常: 需要恰好 3 个有效单词，收到: ...`（纯文本） |
+| `400` | LLM 判定含非英文单词 | `请求异常: 非英文单词`（纯文本） |
 | `401` | 密码错误 | `password incorrect` |
 | `404` | 非 `GET` | `noT founD` |
 | `500` | LLM 调用/解析失败，或未知异常 | `unknowN erroR` |
@@ -215,18 +213,14 @@ curl -H "password: YOUR_PASSWORD" \
 - **状态码** `200`
 - **Content-Type** `application/json`
 
-助记正文在 `choices[0].message.content`（纯文本）。可能出现的哨兵值（与 `const.ts` 一致）：
-
-| 值 | 含义 |
-| --- | ---- |
-| `没有找到合适的助记内容` | 模型认为没有合适助记可给 |
-| `非英文单词` | 模型判定输入不是英文单词（服务端已做格式校验，少见） |
+助记正文在 `choices[0].message.content`（纯文本）。也可能为哨兵 `没有找到合适的助记内容`（模型认为没有合适助记可给）。
 
 ### 错误响应
 
 | 状态码 | 条件 | 正文 |
 | ------ | ---- | ---- |
 | `400` | 缺少 `word` 或格式无效 | `请求异常: 无效的单词 ...`（纯文本） |
+| `400` | LLM 判定非英文单词 | `请求异常: 非英文单词`（纯文本） |
 | `401` | 密码错误 | `password incorrect` |
 | `404` | 非 `GET` | `noT founD` |
 | `500` | LLM 调用失败，或未知异常 | `unknowN erroR` |

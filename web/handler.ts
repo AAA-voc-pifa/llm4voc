@@ -1,3 +1,4 @@
+import { NOT_EN_WORD_ERROR_BY_LLM } from '../const.ts'
 import { e2c } from '../llm/e2c/single.ts'
 import { e2c_multi } from '../llm/e2c/multi.ts'
 import { mnemonic } from '../llm/mnemonic.ts'
@@ -55,8 +56,11 @@ async function handle_e2c(url: URL) {
 		model: 'deepseek-flash',
 		thinking: 'high',
 	})
-	if (ok)
+	if (ok) {
+		if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
+			return respond_400(NOT_EN_WORD_ERROR_BY_LLM)
 		return respond_json(result)
+	}
 
 	console.error(result)
 	return unknown_error()
@@ -73,8 +77,11 @@ async function handle_e2c_multi(url: URL) {
 			thinking: 'high',
 		},
 	)
-	if (ok)
+	if (ok) {
+		if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
+			return respond_400(NOT_EN_WORD_ERROR_BY_LLM)
 		return respond_json(result)
+	}
 
 	console.error(result)
 	return unknown_error()
@@ -90,8 +97,11 @@ async function handle_mnemonic(url: URL) {
 		model: 'deepseek-flash',
 		thinking: 'high',
 	})
-	if (ok)
+	if (ok) {
+		if (result.choices[0]?.message.content === NOT_EN_WORD_ERROR_BY_LLM)
+			return respond_400(NOT_EN_WORD_ERROR_BY_LLM)
 		return respond_json(result)
+	}
 
 	console.error('mnemonic 失败:', word)
 	console.error(result)
