@@ -29,6 +29,7 @@ export
 interface DeepSeekOpts {
 	model?: DeepSeekModel
 	thinking?: DeepSeekReasoningEffort
+	json?: boolean
 }
 
 export
@@ -48,9 +49,9 @@ async function deepseek(msg_list: DeepSeekMessage[], opts: DeepSeekOpts = {}): P
 				type: opts.thinking === undefined ? 'disabled' : 'enabled',
 			},
 			reasoning_effort: opts.thinking,
-			response_format: {
+			response_format: opts.json ? {
 				type: 'json_object', // 'json_object', 'text'
-			},
+			} : undefined,
 		}),
 	})
 	
