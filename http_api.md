@@ -213,7 +213,13 @@ curl -H "password: YOUR_PASSWORD" \
 - **状态码** `200`
 - **Content-Type** `application/json`
 
-助记正文在 `choices[0].message.content`（纯文本）。也可能为哨兵 `没有找到合适的助记内容`（模型认为没有合适助记可给）。
+助记正文在 `choices[0].message.content`（纯文本，非 JSON/Markdown）。内容大致如下：
+
+```text
+unanimous 源自拉丁语：unus（一个）+ animus（心灵），即"万众一心"，所以表示"一致同意的"。记住 animal 里的 anim 也是"生命、心灵"的词根，un + anim + ous = 一个心思的。
+```
+
+若模型找不到合适助记，`content` 会是固定文案 `没有找到合适的助记内容`（见 `const.ts` 的 `NO_SUITABLE_MNEMONIC_CONTENT_ERROR`）。
 
 ### 错误响应
 
@@ -229,5 +235,5 @@ curl -H "password: YOUR_PASSWORD" \
 
 ```bash
 curl -H "password: YOUR_PASSWORD" \
-  "http://localhost:8000/mnemonic?word=multiple"
+  "http://localhost:8000/mnemonic?word=unanimous"
 ```

@@ -2,9 +2,9 @@
 
 import { mnemonic } from '../../llm/mnemonic.ts'
 
-const [ok, result] = await mnemonic('multiple', {
+const [ok, result] = await mnemonic('unanimous', {
 	model: 'deepseek-v4-pro',
-	thinking: 'high',
+	thinking: 'max',
 })
 if (ok)
 	console.log(result.choices[0].message.content)

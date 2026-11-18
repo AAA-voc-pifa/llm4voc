@@ -73,8 +73,8 @@ async function handle_e2c_multi(url: URL) {
 	const [ok, result] = await e2c_multi(
 		[words[0], words[1], words[2]],
 		{
-			model: 'deepseek-flash',
-			thinking: 'high',
+			model: 'deepseek-v4-pro',
+			thinking: 'max',
 		},
 	)
 	if (ok) {
