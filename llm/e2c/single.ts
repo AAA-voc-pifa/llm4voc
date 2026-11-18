@@ -1,6 +1,7 @@
 // English to Chinese — 一词三句
 
 import { z } from '@zod/zod'
+import { NOT_EN_WORD_ERROR_BY_LLM } from '../../const.ts'
 import { deepseek, type DeepSeekOpts } from '../deepseek.ts'
 import { parse_e2c_json, sentence_schema, type E2CResult, type E2CSentence } from './schema.ts'
 
@@ -40,7 +41,8 @@ const prompt = {
 		+ '之后再根据你给出的翻译，对照学生的翻译，给出评分。'
 		+ '当然，评分就不是你的工作了，你只要保证题目的质量。'
 		+ '注意，你给出的英文句子，必须出现该词或其常见屈折/派生。'
-		+ '你给出的响应应是 JSON 格式，如:\n'
+		+ `如果用户输入的内容不是英文单词，直接输出 "${NOT_EN_WORD_ERROR_BY_LLM}"，不包含双引号，也不要其他标点符号，也不要输出 JSON。\n`
+		+ '在正常出题时，你给出的响应应是 JSON 格式，如:\n'
 		+ `\`\`\` json\n${JSON.stringify(example, null, 2)}\n\`\`\`\n\n`
 		+ '你给出的响应应符合以上 JSON 格式，但不必模仿例句的句式。',
 
@@ -55,8 +57,11 @@ async function e2c(word: string, ds_opts?: DeepSeekOpts): Promise<E2CResult<E2CS
 		{ role: 'system', content: prompt.sys },
 		{ role: 'user', content: prompt.user(word) },
 	], ds_opts)
-	if (!ok)
-		return [false, '生成 e2c - 调用失败: ' + result]
+	if (!ok) {
+		const msg = '生成 e2c - 调用失败: ' + result
+		console.error(msg)
+		return [false, msg]
+	}
 
 	return parse_e2c_json('e2c', result, single_schema)
 }

@@ -88,15 +88,17 @@
 
 | 字段 | 类型 | 说明 |
 | ---- | ---- | ---- |
-| `data` | object | 解析后的题目 |
-| `data.word` | string | 请求的单词 |
+| `data` | object \| string | 解析后的题目；若 LLM 判定非英文单词，则为哨兵 `"非英文单词"` |
+| `data.word` | string | 请求的单词（`data` 为 object 时） |
 | `data.questions` | array | 题目列表（通常为 3 题） |
 | `data.questions[].en` | string | 包含目标单词的英文句子 |
 | `data.questions[].zh` | string | 对应中文翻译（可含意译） |
 | `raw` | object | DeepSeek 原始响应（字段可能多于下方列出的） |
 | `raw.id` | string | 请求 ID |
-| `raw.choices[].message.content` | string | 已清空为 `""`（题目见 `data`） |
+| `raw.choices[].message.content` | string | 已清空为 `""`（题目或哨兵见 `data`） |
 | `raw.choices[].message.reasoning_content` | string | 模型思考过程 |
+
+当 `data === "非英文单词"`（与 `const.ts` 中 `NOT_EN_WORD_ERROR_BY_LLM` 一致）时，表示模型判定输入不是英文单词。
 
 ### 错误响应
 
@@ -169,14 +171,16 @@ curl -H "password: YOUR_PASSWORD" \
 
 | 字段 | 类型 | 说明 |
 | ---- | ---- | ---- |
-| `data` | object | 解析后的题目 |
+| `data` | object \| string | 解析后的题目；若 LLM 判定含非英文单词，则为哨兵 `"非英文单词"` |
 | `data.questions` | array | 恰好 3 题，顺序与请求单词一致 |
 | `data.questions[].word` | string | 该题对应的单词 |
 | `data.questions[].en` | string | 包含目标单词的英文句子 |
 | `data.questions[].zh` | string | 对应中文翻译（可含意译） |
 | `raw` | object | DeepSeek 原始响应（字段可能多于下方列出的） |
-| `raw.choices[].message.content` | string | 已清空为 `""`（题目见 `data`） |
+| `raw.choices[].message.content` | string | 已清空为 `""`（题目或哨兵见 `data`） |
 | `raw.choices[].message.reasoning_content` | string | 模型思考过程 |
+
+当 `data === "非英文单词"` 时，表示模型判定输入中有不是英文单词的项。
 
 ### 错误响应
 

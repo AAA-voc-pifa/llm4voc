@@ -3,7 +3,7 @@
 import { e2c_multi } from '../../llm/e2c/multi.ts'
 
 console.log(
-	await e2c_multi(['lash', 'proficient', 'self-aware'], {
+	await e2c_multi(['xxxs', 'proficient', 'self-aware'], {
 		model: 'deepseek-flash',
 	})
 )
