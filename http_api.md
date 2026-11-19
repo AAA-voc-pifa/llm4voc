@@ -4,7 +4,7 @@
 
 ### 认证
 
-除 `OPTIONS` 预检外，所有接口均需在请求头携带密码：
+所有接口均需在请求头携带密码：
 
 | Header     | 说明                         |
 | ---------- | ---------------------------- |
@@ -14,18 +14,6 @@
 
 - **状态码** `401`
 - **正文** `password incorrect`（纯文本）
-
-### CORS
-
-所有响应（含错误与预检）均带：
-
-| Header                         | 值                                      |
-| ------------------------------ | --------------------------------------- |
-| `Access-Control-Allow-Origin`  | `*`                                     |
-| `Access-Control-Allow-Methods` | `GET, OPTIONS, POST, DELETE, PUT`       |
-| `Access-Control-Allow-Headers` | `password, Content-Type`                |
-
-`OPTIONS` 任意路径返回 `204`（无正文）。
 
 ### 通用错误
 

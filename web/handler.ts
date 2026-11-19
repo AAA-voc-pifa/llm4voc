@@ -11,9 +11,6 @@ async function http_handler(req: Request): Promise<Response> {
 	const req_str = req.method + ' ' + url.pathname + url.search
 	const now = Date.now()
 	try {
-		if (req.method === 'OPTIONS')
-			return Respond(204, null)
-
 		// 检查密码
 		if (req.headers.get('password') !== http_password)
 			return Respond(401, 'password incorrect')
@@ -112,9 +109,7 @@ function Respond(status: number, body: string | null, opts?: {
 	json: boolean
 }) {
 	const headers: Record<string, string> = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'GET, OPTIONS, POST, DELETE, PUT',
-		'Access-Control-Allow-Headers': 'password, Content-Type',
+		// ...
 	}
 	if (opts?.json === true)
 		headers['Content-Type'] = 'application/json'
