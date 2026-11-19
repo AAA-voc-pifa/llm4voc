@@ -41,12 +41,10 @@ async function handle_e2c(ctx: HttpCTX) {
 		model: 'deepseek-flash',
 		thinking: 'high',
 	})
-	if (!ok) {
-		ctx.log.error(result)
-		throw unknown_error()
-	}
+	if (!ok)
+		return unknown_error()
 	if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
-		throw bad_request()
+		return bad_request()
 	return respond_json(result)
 }
 
@@ -56,12 +54,10 @@ async function handle_e2c_multi(ctx: HttpCTX) {
 		model: 'deepseek-v4-pro',
 		thinking: 'max',
 	})
-	if (!ok) {
-		ctx.log.error(result)
-		throw unknown_error()
-	}
+	if (!ok)
+		return unknown_error()
 	if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
-		throw bad_request()
+		return bad_request()
 	return respond_json(result)
 }
 

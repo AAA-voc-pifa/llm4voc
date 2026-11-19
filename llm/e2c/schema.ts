@@ -54,7 +54,7 @@ function parse_e2c_json<T>(
 	} catch (err) {
 		console.error(`生成 ${label} - JSON.parse 失败:`)
 		console.error(err)
-		console.error(text)
+		console.error('llm output:', text)
 		return [false, `生成 ${label} - JSON.parse 失败: \n` + text]
 	}
 

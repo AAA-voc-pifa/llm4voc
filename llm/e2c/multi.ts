@@ -47,9 +47,9 @@ const prompt = {
 		+ '注意，每句英文必须出现对应单词或其常见屈折/派生。'
 		+ '三个句子应分别对应三个单词，顺序与用户给出的单词顺序一致。'
 		+ `如果用户输入的单词中有不是英文单词的，直接输出 "${NOT_EN_WORD_ERROR_BY_LLM}"，不包含双引号，也不要其他标点符号，也不要输出 JSON。\n`
-		+ '在正常出题时，你给出的响应应是 JSON 格式，如:\n'
-		+ `\`\`\` json\n${JSON.stringify(example, null, 2)}\n\`\`\`\n\n`
-		+ '你给出的响应应符合以上 JSON 格式，但不必模仿例句的句式。',
+		+ '在正常出题时，你输出的内容应是 JSON 格式，可以被 js 的 JSON.parse 解析，结构如下（你生成的句子不必模仿例句的句式、结构、内容）:\n\n'
+		+ `${JSON.stringify(example, null, 2)}\n`
+	,
 
 	user: (words: [string, string, string]) =>
 		`英文单词: "${words[0]}", "${words[1]}", "${words[2]}"。请按系统要求输出 JSON。`,
