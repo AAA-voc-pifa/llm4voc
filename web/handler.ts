@@ -1,134 +1,90 @@
+import {
+	simple_serve,
+	respond_json,
+	bad_request,
+	unknown_error,
+	type HttpCTX,
+	type HttpRoute,
+} from '@ppz/simple-api'
+import { z } from 'zod'
+import { zfd } from 'zod-form-data'
 import { NOT_EN_WORD_ERROR_BY_LLM } from '../const.ts'
 import { e2c } from '../llm/e2c/single.ts'
 import { e2c_multi } from '../llm/e2c/multi.ts'
 import { mnemonic } from '../llm/mnemonic.ts'
 import { http_password } from '../env.ts'
-import { validate_word } from '../util.ts'
 
-export
-async function http_handler(req: Request): Promise<Response> {
-	const url = new URL(req.url)
-	const req_str = req.method + ' ' + url.pathname + url.search
-	const now = Date.now()
-	try {
-		// 检查密码
-		if (req.headers.get('password') !== http_password)
-			return Respond(401, 'password incorrect')
-		// 处理请求
-		switch(url.pathname) {
-			case '/e2c':
-				if (req.method === 'GET')
-					return await handle_e2c(url)
-				else
-					return not_found()
-			case '/e2c-multi':
-				if (req.method === 'GET')
-					return await handle_e2c_multi(url)
-				else
-					return not_found()
-			case '/mnemonic':
-				if (req.method === 'GET')
-					return await handle_mnemonic(url)
-				else
-					return not_found()
-			// 404
-			default:
-				return not_found()
-		}
-	} catch(err) {
-		// 未知错误
-		console.error(`处理 ${req_str} 时发生未知错误:`)
-		console.error(err)
-		return unknown_error()
-	} finally {
-		console.log(`处理 ${req_str} 耗时: ${Date.now() - now}ms`)
-	}
-}
+const word_re = /^[A-Za-z]+(-[A-Za-z]+)*$/
 
-async function handle_e2c(url: URL) {
-	const word = url.searchParams.get('word')
-	if (word === null || !validate_word(word))
-		return respond_400('无效的单词 ' + word)
+const word_query = zfd.formData({
+	word: zfd.text(z.string().regex(word_re)),
+})
+
+const words_query = zfd.formData({
+	word: zfd
+		.repeatableOfType(zfd.text(z.string().regex(word_re)))
+		.pipe(z.tuple([z.string(), z.string(), z.string()])),
+})
+
+async function handle_e2c(ctx: HttpCTX) {
+	const { word } = ctx.parse_query(word_query)
 	const [ok, result] = await e2c(word, {
 		model: 'deepseek-flash',
 		thinking: 'high',
 	})
-	if (ok) {
-		if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
-			return respond_400(NOT_EN_WORD_ERROR_BY_LLM)
-		return respond_json(result)
+	if (!ok) {
+		ctx.log.error(result)
+		throw unknown_error()
 	}
-
-	console.error(result)
-	return unknown_error()
+	if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
+		throw bad_request()
+	return respond_json(result)
 }
 
-async function handle_e2c_multi(url: URL) {
-	const words = url.searchParams.getAll('word')
-	if (words.length !== 3 || !words.every(validate_word))
-		return respond_400('需要恰好 3 个有效单词，收到: ' + JSON.stringify(words))
-	const [ok, result] = await e2c_multi(
-		[words[0], words[1], words[2]],
-		{
-			model: 'deepseek-v4-pro',
-			thinking: 'max',
-		},
-	)
-	if (ok) {
-		if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
-			return respond_400(NOT_EN_WORD_ERROR_BY_LLM)
-		return respond_json(result)
+async function handle_e2c_multi(ctx: HttpCTX) {
+	const { word: words } = ctx.parse_query(words_query)
+	const [ok, result] = await e2c_multi(words, {
+		model: 'deepseek-v4-pro',
+		thinking: 'max',
+	})
+	if (!ok) {
+		ctx.log.error(result)
+		throw unknown_error()
 	}
-
-	console.error(result)
-	return unknown_error()
+	if (result.data === NOT_EN_WORD_ERROR_BY_LLM)
+		throw bad_request('请求异常: ' + NOT_EN_WORD_ERROR_BY_LLM)
+	return respond_json(result)
 }
 
-async function handle_mnemonic(url: URL) {
-	const word = url.searchParams.get('word')
-	if (word === null || !validate_word(word)) {
-		console.warn('mnemonic 参数无效:', word)
-		return respond_400('无效的单词 ' + word)
-	}
+async function handle_mnemonic(ctx: HttpCTX) {
+	const { word } = ctx.parse_query(word_query)
 	const [ok, result] = await mnemonic(word, {
 		model: 'deepseek-flash',
 		thinking: 'high',
 	})
-	if (ok) {
-		if (result.choices[0]?.message.content === NOT_EN_WORD_ERROR_BY_LLM)
-			return respond_400(NOT_EN_WORD_ERROR_BY_LLM)
-		return respond_json(result)
+	if (!ok) {
+		ctx.log.error('mnemonic 失败:', word, result)
+		throw unknown_error()
 	}
-
-	console.error('mnemonic 失败:', word)
-	console.error(result)
-	return unknown_error()
+	if (result.choices[0]?.message.content === NOT_EN_WORD_ERROR_BY_LLM)
+		throw bad_request()
+	return respond_json(result)
 }
 
-function Respond(status: number, body: string | null, opts?: {
-	json: boolean
-}) {
-	const headers: Record<string, string> = {
-		// ...
+const routes: HttpRoute[] = [
+	['GET', '/e2c', handle_e2c],
+	['GET', '/e2c-multi', handle_e2c_multi],
+	['GET', '/mnemonic', handle_mnemonic],
+]
+
+for (const route of routes) {
+	const raw_handle = route[2]
+	route[2] = async ctx => {
+		if (ctx.req.headers.get('password') !== http_password)
+			throw new Response('password incorrect', { status: 401 })
+		return await raw_handle(ctx)
 	}
-	if (opts?.json === true)
-		headers['Content-Type'] = 'application/json'
-	return new Response(body, { status, headers })
 }
 
-function respond_json(data: unknown) {
-	return Respond(200, JSON.stringify(data), {
-		json: true,
-	})
-}
-
-function respond_400(msg: string) {
-	return Respond(400, '请求异常: ' + msg)
-}
-
-function not_found() {
-	return Respond(404, 'noT founD')
-}
-function unknown_error() {
-	return Respond(500, 'unknowN erroR')
-}
+export
+const http_handler = simple_serve({ routes })

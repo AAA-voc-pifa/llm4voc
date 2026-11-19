@@ -1,11 +1,20 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@ppz/simple-api@^1.0.4": "1.0.4",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
-    "jsr:@zod/zod@^4.6.7": "4.6.7"
+    "jsr:@zod/zod@^4.6.7": "4.6.7",
+    "npm:zod-form-data@^3.0.4": "3.0.4_zod@4.6.7",
+    "npm:zod@^4.6.7": "4.6.7"
   },
   "jsr": {
+    "@ppz/simple-api@1.0.4": {
+      "integrity": "9f4d677bf22970ae56dbf7336896d67c7a0723d7aabd5c35835984aa25e3c579",
+      "dependencies": [
+        "npm:zod"
+      ]
+    },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
@@ -19,10 +28,28 @@
       "integrity": "6706868ce1e1907362e1bf008e298e482723345f0ba4125c43e5b9fd7960b186"
     }
   },
+  "npm": {
+    "@rvf/set-get@7.0.4": {
+      "integrity": "sha512-1QZ3hRXB0ftyaszFwTgLYzW+Ydeffz5tPPqEYeX88okTBiZXXWmavNIL/jjXX/Q/s9oj1NAJ5veqNuPYzbg4mg=="
+    },
+    "zod-form-data@3.0.4_zod@4.6.7": {
+      "integrity": "sha512-3GGlbm9HdPwaUskkwu4ozubCD0sU8POnRMFuFl5BIJcSN4fm61Fn4zj7wIq6ufUFzP4hsdp4NvpeuovlXj5kkw==",
+      "dependencies": [
+        "@rvf/set-get",
+        "zod"
+      ]
+    },
+    "zod@4.6.7": {
+      "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg=="
+    }
+  },
   "workspace": {
     "dependencies": [
+      "jsr:@ppz/simple-api@^1.0.4",
       "jsr:@std/assert@1",
-      "jsr:@zod/zod@^4.6.7"
+      "jsr:@zod/zod@^4.6.7",
+      "npm:zod-form-data@^3.0.4",
+      "npm:zod@^4.6.7"
     ]
   }
 }
