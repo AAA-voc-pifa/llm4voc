@@ -3,7 +3,7 @@
     "dev": "deno run -A --env-file main.ts"
   },
   "imports": {
-    "@ppz/simple-api": "jsr:@ppz/simple-api@^1.0.5",
+    "@ppz/simple-api": "jsr:@ppz/simple-api@^1.0.6",
     "@std/assert": "jsr:@std/assert@1",
     "@zod/zod": "jsr:@zod/zod@^4.6.7",
     "zod": "npm:zod@^4.6.7",
