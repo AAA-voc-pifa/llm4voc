@@ -22,7 +22,7 @@ interface DeepSeekResponseData {
 
 type DeepSeekModel = 'deepseek-flash' | 'deepseek-v4-pro'
 type DeepSeekReasoningEffort = 'low' | 'high' | 'max'
-	
+
 type DeepSeekResult = [false, string] | [true, DeepSeekResponseData]
 
 export
