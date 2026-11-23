@@ -17,11 +17,14 @@
 
 ### 通用错误
 
-| 状态码 | 正文（纯文本）       | 说明                         |
-| ------ | -------------------- | ---------------------------- |
-| `401`  | `password incorrect` | 密码错误                     |
-| `404`  | `noT founD`          | 未知路径或 Method 不支持     |
-| `500`  | `unknowN erroR`      | 未捕获异常，或上游 LLM 失败  |
+| 状态码 | 正文（纯文本）       | 说明                                       |
+| ------ | -------------------- | ------------------------------------------ |
+| `400`  | `baD requesT`        | query 无效，或 LLM 判定非英文单词          |
+| `401`  | `password incorrect` | 密码错误                                   |
+| `404`  | `noT founD`          | 未知路径或 Method 不支持                   |
+| `500`  | `unknowN erroR`      | 未捕获异常，或上游 LLM 调用/解析失败       |
+
+单词参数统一匹配：`/^[A-Za-z]+(-[A-Za-z]+)*$/`（字母，可含连字符，如 `self-aware`）。
 
 ---
 
@@ -31,9 +34,9 @@
 
 ### Query
 
-| 参数   | 类型   | 必填 | 说明 |
-| ------ | ------ | ---- | ---- |
-| `word` | string | 是   | 目标英文单词，须匹配 `/^[A-Za-z]+(-[A-Za-z]+)*$/`（字母，可含连字符，如 `self-aware`） |
+| 参数   | 类型   | 必填 | 说明         |
+| ------ | ------ | ---- | ------------ |
+| `word` | string | 是   | 目标英文单词 |
 
 ### 成功响应
 
@@ -88,13 +91,7 @@
 
 ### 错误响应
 
-| 状态码 | 条件 | 正文 |
-| ------ | ---- | ---- |
-| `400` | 缺少 `word` 或格式无效 | `请求异常: 无效的单词 ...`（纯文本） |
-| `400` | LLM 判定非英文单词 | `请求异常: 非英文单词`（纯文本） |
-| `401` | 密码错误 | `password incorrect` |
-| `404` | 非 `GET`（如 `POST /e2c`） | `noT founD` |
-| `500` | LLM 调用/解析失败，或未知异常 | `unknowN erroR` |
+见[通用错误](#通用错误)。另：非 `GET` → `404`。
 
 ### 示例
 
@@ -111,9 +108,9 @@ curl -H "password: YOUR_PASSWORD" \
 
 ### Query
 
-| 参数   | 类型   | 必填 | 说明 |
-| ------ | ------ | ---- | ---- |
-| `word` | string | 是   | 重复传 3 次；每个值须匹配 `/^[A-Za-z]+(-[A-Za-z]+)*$/` |
+| 参数   | 类型   | 必填 | 说明                         |
+| ------ | ------ | ---- | ---------------------------- |
+| `word` | string | 是   | 重复传 3 次；每个值须为有效单词 |
 
 ### 成功响应
 
@@ -163,19 +160,13 @@ curl -H "password: YOUR_PASSWORD" \
 | `data.questions[].word` | string | 该题对应的单词 |
 | `data.questions[].en` | string | 包含目标单词的英文句子 |
 | `data.questions[].zh` | string | 对应中文翻译（可含意译） |
-| `raw` | object | DeepSeek 原始响应（字段可能多于下方列出的） |
+| `raw` | object | DeepSeek 原始响应 |
 | `raw.choices[].message.content` | string | 已清空为 `""`（题目见 `data`） |
 | `raw.choices[].message.reasoning_content` | string | 模型思考过程 |
 
 ### 错误响应
 
-| 状态码 | 条件 | 正文 |
-| ------ | ---- | ---- |
-| `400` | 不是恰好 3 个有效 `word` | `请求异常: 需要恰好 3 个有效单词，收到: ...`（纯文本） |
-| `400` | LLM 判定含非英文单词 | `请求异常: 非英文单词`（纯文本） |
-| `401` | 密码错误 | `password incorrect` |
-| `404` | 非 `GET` | `noT founD` |
-| `500` | LLM 调用/解析失败，或未知异常 | `unknowN erroR` |
+见[通用错误](#通用错误)。`word` 不是恰好 3 个有效值 → `400`。非 `GET` → `404`。
 
 ### 示例
 
@@ -188,13 +179,13 @@ curl -H "password: YOUR_PASSWORD" \
 
 ## `GET /mnemonic`
 
-根据英文单词生成简短助记文本。成功时直接返回 DeepSeek 原始响应 JSON（不套 e2c 的 `{ data, raw }`）。
+根据英文单词生成简短助记文本。成功时直接返回 DeepSeek 原始响应 JSON（不套 `{ data, raw }`）。
 
 ### Query
 
-| 参数   | 类型   | 必填 | 说明 |
-| ------ | ------ | ---- | ---- |
-| `word` | string | 是   | 目标英文单词，须匹配 `/^[A-Za-z]+(-[A-Za-z]+)*$/` |
+| 参数   | 类型   | 必填 | 说明         |
+| ------ | ------ | ---- | ------------ |
+| `word` | string | 是   | 目标英文单词 |
 
 ### 成功响应
 
@@ -211,17 +202,90 @@ unanimous 源自拉丁语：unus（一个）+ animus（心灵），即"万众一
 
 ### 错误响应
 
-| 状态码 | 条件 | 正文 |
-| ------ | ---- | ---- |
-| `400` | 缺少 `word` 或格式无效 | `请求异常: 无效的单词 ...`（纯文本） |
-| `400` | LLM 判定非英文单词 | `请求异常: 非英文单词`（纯文本） |
-| `401` | 密码错误 | `password incorrect` |
-| `404` | 非 `GET` | `noT founD` |
-| `500` | LLM 调用失败，或未知异常 | `unknowN erroR` |
+见[通用错误](#通用错误)。非 `GET` → `404`。
 
 ### 示例
 
 ```bash
 curl -H "password: YOUR_PASSWORD" \
   "http://localhost:8000/mnemonic?word=unanimous"
+```
+
+---
+
+## `GET /mnemonic-j`
+
+根据英文单词生成**结构化**助记 JSON（词源、变体、谐音等）。响应格式与 `/e2c` 相同：`{ data, raw }`。
+
+### Query
+
+| 参数   | 类型   | 必填 | 说明         |
+| ------ | ------ | ---- | ------------ |
+| `word` | string | 是   | 目标英文单词 |
+
+### 成功响应
+
+- **状态码** `200`
+- **Content-Type** `application/json`
+
+```json
+{
+  "data": {
+    "etymology": {
+      "components": [
+        "`un-` 源自拉丁语 `unus`，意为「一」；同根 `uni-`，见于 `unit`「单位」，`unify`「统一」，`unite`「联合」。",
+        "`anim-` 拉丁语本义「呼吸」；常见词 `animal` 即「有呼吸的」→ 动物；由此引申出 `animus`「精神/心」。",
+        "`-ous` 形容词后缀。"
+      ],
+      "explanation": "`un-`「一」+ `anim-`「心/精神」+ `-ous`「形容词后缀」→ 一条心的 → 全体一致的。"
+    },
+    "variant": null,
+    "homophonic": null,
+    "abbreviation": null,
+    "meme": null,
+    "other": null,
+    "all_in_one": "unus(一，见 unit) + anim-(呼吸，见 animal；引申为精神/心) + -ous(形容词后缀) → 一条心 → unanimous = 全体一致的。"
+  },
+  "raw": {
+    "id": "...",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "content": "",
+          "reasoning_content": "..."
+        }
+      }
+    ]
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+| ---- | ---- | ---- |
+| `data` | object \| null 字段 | 解析后的结构化助记；各角度无内容时为 `null` |
+| `data.etymology` | object \| null | 词源/词根/词缀 |
+| `data.etymology.components` | string[] | 构词部件说明（至少 1 项） |
+| `data.etymology.explanation` | string | 构词推导说明 |
+| `data.variant` | string \| null | 更常见的变体提示 |
+| `data.homophonic` | object \| null | 谐音/联想 |
+| `data.homophonic.list` | string[] | 1–3 组谐音 |
+| `data.homophonic.best` | int | 最佳项下标（0–2） |
+| `data.abbreviation` | string \| null | 相关常见缩写 |
+| `data.meme` | string \| null | 经典台词/歌词/流行语等 |
+| `data.other` | string \| null | 其他合适角度 |
+| `data.all_in_one` | string \| null | 整合后的一句简短助记 |
+| `raw` | object | DeepSeek 原始响应 |
+| `raw.choices[].message.content` | string | 已清空为 `""`（内容见 `data`） |
+| `raw.choices[].message.reasoning_content` | string | 模型思考过程 |
+
+### 错误响应
+
+见[通用错误](#通用错误)。非 `GET` → `404`。
+
+### 示例
+
+```bash
+curl -H "password: YOUR_PASSWORD" \
+  "http://localhost:8000/mnemonic-j?word=unanimous"
 ```

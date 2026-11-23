@@ -1,6 +1,7 @@
 import { NOT_EN_WORD_ERROR_BY_LLM } from '../const.ts'
-import { deepseek, type DeepSeekOpts, type DeepSeekResponseData } from './deepseek.ts'
-import { z } from 'zod'
+import { deepseek, type DeepSeekOpts } from './deepseek.ts'
+import { parse_e2c_json, type E2CResult } from './e2c/schema.ts'
+import { z } from '@zod/zod'
 
 const mnemonic_schema = z.object({
 	etymology: z.nullable(
@@ -162,3 +163,18 @@ ${JSON.stringify(example_chief, null, 2)}
 `
 
 const user_prompt = (word: string) => `单词: ${word}`
+
+export
+async function mnemonic_j(word: string, ds_opts?: DeepSeekOpts): Promise<E2CResult<MnemonicContent>> {
+	console.log('生成 mnemonic_j...', word)
+	const [ok, result] = await deepseek([
+		{ role: 'system', content: sys_prompt },
+		{ role: 'user', content: user_prompt(word) },
+	], ds_opts)
+	if (!ok) {
+		const msg = '生成 mnemonic_j - 调用失败: ' + result
+		console.error(msg)
+		return [false, msg]
+	}
+	return parse_e2c_json('mnemonic_j', result, mnemonic_schema)
+}
