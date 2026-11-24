@@ -8,7 +8,7 @@ git clone git@github.com:AAA-voc-pifa/llm4voc.git
 cd ./llm4voc
 docker build -t llm4voc .
 docker run --rm \
-	-p 127.0.0.1:20002:8000 \
+	-p 127.0.0.1:20002:80 \
 	-e deepseek_apikey='' \
 	llm4voc
 ```
