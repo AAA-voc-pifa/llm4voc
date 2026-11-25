@@ -2,6 +2,8 @@ FROM denoland/deno:alpine-2.9.8
 
 WORKDIR /app
 
+ENV PORT=80
+
 COPY deno.json deno.lock* ./
 RUN deno install
 

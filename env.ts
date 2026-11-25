@@ -2,7 +2,7 @@ import { assert } from '@std/assert'
 import { real_str } from './util.ts'
 
 export
-const deepseek_apikey: string = must_env('deepseek_apikey')
+const deepseek_apikey: string = must_env('DEEPSEEK_APIKEY')
 
 function must_env(key: string): string {
 	const value = Deno.env.get(key)
