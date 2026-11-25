@@ -4,6 +4,9 @@ import { real_str } from './util.ts'
 export
 const deepseek_apikey: string = must_env('DEEPSEEK_APIKEY')
 
+export
+const authentication: string = must_env('AUTHENTICATION')
+
 function must_env(key: string): string {
 	const value = Deno.env.get(key)
 	assert(real_str(value), err_msg(key))

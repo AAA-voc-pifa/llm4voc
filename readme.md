@@ -5,8 +5,11 @@
 
 ## DEV
 
+[simple-api](https://github.com/ppzreboot/simple-api)
+
 ```sh
 export DEEPSEEK_APIKEY='123456'
+export AUTHENTICATION='123456'
 # PORT 非必须，默认监听 8000
 export PORT='8080'
 deno run -A ./main.ts
@@ -20,5 +23,6 @@ docker build -t llm4voc .
 docker run --rm \
 	-p 127.0.0.1:20002:80 \
 	-e DEEPSEEK_APIKEY='123456' \
+	-e AUTHENTICATION='123456' \
 	llm4voc
 ```

@@ -2,15 +2,23 @@
 
 ## 通用约定
 
-内网部署，无认证。
+### 认证
+
+所有接口均需在请求头携带：
+
+| Header           | 说明                              |
+| ---------------- | --------------------------------- |
+| `Authentication` | 须与环境变量 `AUTHENTICATION` 一致 |
+
+认证失败（缺失或不匹配）→ `400 baD requesT`（不额外说明原因）。
 
 ### 通用错误
 
-| 状态码 | 正文（纯文本）  | 说明                                 |
-| ------ | --------------- | ------------------------------------ |
-| `400`  | `baD requesT`   | query 无效，或 LLM 判定非英文单词    |
-| `404`  | `noT founD`     | 未知路径或 Method 不支持             |
-| `500`  | `unknowN erroR` | 未捕获异常，或上游 LLM 调用/解析失败 |
+| 状态码 | 正文（纯文本）  | 说明                                              |
+| ------ | --------------- | ------------------------------------------------- |
+| `400`  | `baD requesT`   | 认证失败、query 无效，或 LLM 判定非英文单词       |
+| `404`  | `noT founD`     | 未知路径或 Method 不支持                          |
+| `500`  | `unknowN erroR` | 未捕获异常，或上游 LLM 调用/解析失败              |
 
 单词参数统一匹配：`/^[A-Za-z]+(-[A-Za-z]+)*$/`（字母，可含连字符，如 `self-aware`）。
 
@@ -84,7 +92,7 @@
 ### 示例
 
 ```bash
-curl \
+curl -H "Authentication: YOUR_TOKEN" \
   "http://localhost:8000/e2c?word=self-aware"
 ```
 
@@ -159,7 +167,7 @@ curl \
 ### 示例
 
 ```bash
-curl \
+curl -H "Authentication: YOUR_TOKEN" \
   "http://localhost:8000/e2c-multi?word=lash&word=proficient&word=self-aware"
 ```
 
@@ -195,7 +203,7 @@ unanimous 源自拉丁语：unus（一个）+ animus（心灵），即"万众一
 ### 示例
 
 ```bash
-curl \
+curl -H "Authentication: YOUR_TOKEN" \
   "http://localhost:8000/mnemonic?word=unanimous"
 ```
 
@@ -274,6 +282,6 @@ curl \
 ### 示例
 
 ```bash
-curl \
+curl -H "Authentication: YOUR_TOKEN" \
   "http://localhost:8000/mnemonic-j?word=unanimous"
 ```

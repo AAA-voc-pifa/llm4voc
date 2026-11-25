@@ -5,6 +5,8 @@ import {
 	bad_request,
 	unknown_error,
 	type HttpCTX,
+	type HttpHandler,
+	type HttpMethod,
 } from '@ppz/simple-api'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
@@ -13,6 +15,7 @@ import { e2c } from '../llm/e2c/single.ts'
 import { e2c_multi } from '../llm/e2c/multi.ts'
 import { mnemonic } from '../llm/mnemonic.ts'
 import { mnemonic_j } from '../llm/mnemonic_j.ts'
+import { authentication } from '../env.ts'
 
 const word_re = /^[A-Za-z]+(-[A-Za-z]+)*$/
 
@@ -25,6 +28,17 @@ const words_query = zfd.formData({
 		.repeatableOfType(zfd.text(z.string().regex(word_re)))
 		.pipe(z.tuple([z.string(), z.string(), z.string()])),
 })
+
+const auth_route = (method: HttpMethod, path: string, handler: HttpHandler) =>
+	http_route(method, path, async ctx => {
+		const user_auth = ctx.req.headers.get('Authentication')
+		if (user_auth === null || user_auth === '')
+			throw bad_request()
+		else if (user_auth !== authentication)
+			throw new Response('baD autH', { status: 401 })
+		else
+			return await handler(ctx)
+	})
 
 async function handle_e2c(ctx: HttpCTX) {
 	const { word } = ctx.parse_query(word_query)
@@ -81,9 +95,9 @@ async function handle_mnemonic_j(ctx: HttpCTX) {
 export
 const http_handler = simple_serve({
 	routes: [
-		http_route('GET', '/e2c', handle_e2c),
-		http_route('GET', '/e2c-multi', handle_e2c_multi),
-		http_route('GET', '/mnemonic', handle_mnemonic),
-		http_route('GET', '/mnemonic-j', handle_mnemonic_j),
+		auth_route('GET', '/e2c', handle_e2c),
+		auth_route('GET', '/e2c-multi', handle_e2c_multi),
+		auth_route('GET', '/mnemonic', handle_mnemonic),
+		auth_route('GET', '/mnemonic-j', handle_mnemonic_j),
 	],
 })
